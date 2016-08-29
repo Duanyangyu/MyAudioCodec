@@ -110,16 +110,11 @@ public class AudioCodec {
                 trackFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE,44100);
                 String mime = trackFormat.getString(MediaFormat.KEY_MIME);
                 if (mime.startsWith("video")){
-//                    int frameRate = trackFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
-//                    Log.d(TAG,"frameRate: "+frameRate);
                     Log.d(TAG,"mimetype:"+mime);
                 }
                 if (mime.startsWith("audio"));{
                     mMediaExtrator.selectTrack(i);
                     mAudioDecoder = MediaCodec.createDecoderByType(mime);
-//                    Bundle params = new Bundle();
-//                    params.putInt(MediaCodec.K);
-//                    mAudioDecoder.setParameters(params);
                     //TODO 第四个参数为什么传 0 ？
                     mAudioDecoder.configure(trackFormat,null,null,0);
                     break;
@@ -178,11 +173,9 @@ public class AudioCodec {
 
     //3.开启线程，启动转码
     public void start(){
-
         Log.d(TAG,"start work!");
         new Thread(new DecodeRunnable()).start();
         new Thread(new EncodeRunnable()).start();
-
     }
 
     /**

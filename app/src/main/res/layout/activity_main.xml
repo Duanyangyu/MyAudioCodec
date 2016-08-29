@@ -38,12 +38,31 @@
         android:layout_marginLeft="10dp"
         android:id="@+id/textview_dst"/>
 
-    <Button
-        android:onClick="btnStartCodec"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_alignParentBottom="true"
-        android:text="开始"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:onClick="btnStartCodec"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始转码音频文件"/>
+
+        <Button
+            android:onClick="btnStartDecodeVideo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始解码视频"/>
+
+        <Button
+            android:onClick="btn2SoftInputSurfaceAct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SoftInputSurfaceAct"/>
+
+    </LinearLayout>
 
 
 </RelativeLayout>

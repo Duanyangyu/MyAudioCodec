@@ -1,9 +1,11 @@
 package com.audio.duanyy.codec;
 
+import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.os.Bundle;
 import android.util.Log;
 
 import java.io.BufferedOutputStream;
@@ -80,6 +82,10 @@ public class AudioCodec {
         mChunkPCMDataContainer = new ArrayList<>();
 
         try {
+            File file2 = new File(dstPath);
+            if (file2.exists()){
+                file2.delete();
+            }
             mFos = new FileOutputStream(dstPath);
             mBos = new BufferedOutputStream(mFos);
             File file = new File(srcPath);
@@ -98,14 +104,22 @@ public class AudioCodec {
         mMediaExtrator = new MediaExtractor();
         try {
             mMediaExtrator.setDataSource(srcPath);
-
             int trackCount = mMediaExtrator.getTrackCount();
             for (int i = 0; i < trackCount; i++) {
                 MediaFormat trackFormat = mMediaExtrator.getTrackFormat(i);
+                trackFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE,44100);
                 String mime = trackFormat.getString(MediaFormat.KEY_MIME);
+                if (mime.startsWith("video")){
+//                    int frameRate = trackFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+//                    Log.d(TAG,"frameRate: "+frameRate);
+                    Log.d(TAG,"mimetype:"+mime);
+                }
                 if (mime.startsWith("audio"));{
                     mMediaExtrator.selectTrack(i);
                     mAudioDecoder = MediaCodec.createDecoderByType(mime);
+//                    Bundle params = new Bundle();
+//                    params.putInt(MediaCodec.K);
+//                    mAudioDecoder.setParameters(params);
                     //TODO 第四个参数为什么传 0 ？
                     mAudioDecoder.configure(trackFormat,null,null,0);
                     break;
@@ -134,10 +148,12 @@ public class AudioCodec {
 
     //2.初始化编码器
     private void initAudioAACEncoder(){
-        MediaFormat mediaFormat = MediaFormat.createAudioFormat(mimeType,44100,2);//mime类型、采样率、声道数
-        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE,96000);//设置比特率
+        MediaFormat mediaFormat = MediaFormat.createAudioFormat(mimeType,44100,1);//mime类型、采样率、声道数
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE,256000);//设置比特率
+        mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_MASK, AudioFormat.CHANNEL_OUT_MONO);
         mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);//TODO 2设置的什么属性？
         mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,100*1024);// unit:byte
+
         try {
             mAudioEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
             mAudioEncoder.configure(mediaFormat,null,null,MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -220,6 +236,7 @@ public class AudioCodec {
                 mAudioDecoder.queueInputBuffer(intputIndex,0,sampleSize,0,0);//通知解码器对刚才传入的数据块进行解码。利用index标识是哪一个缓冲数据块
                 mMediaExtrator.advance();
                 decodeSize += sampleSize;
+                Log.d(TAG,"解码器queueInputBuffer...");
             }
         }
 
@@ -234,6 +251,7 @@ public class AudioCodec {
             putPCMData(chunkPCM);
             mAudioDecoder.releaseOutputBuffer(outputIndex,false);//释放当前缓冲区
             outputIndex = mAudioDecoder.dequeueOutputBuffer(mDecodeBufferInfo,10000);//再次出队数据，如果没有数据输出则返回-1，即循环结束
+            Log.d(TAG,"解码器dequeueOutputBuffer...");
         }
     }
 
@@ -256,6 +274,7 @@ public class AudioCodec {
             inputBuffer.limit(chunkPCM.length);
             inputBuffer.put(chunkPCM);
             mAudioEncoder.queueInputBuffer(inputIndex,0,chunkPCM.length,0,0);//通知编码器，对刚才输入的数据进行编码
+            Log.d(TAG,"编码器queueInputBuffer...");
         }
         int outputIndex = mAudioEncoder.dequeueOutputBuffer(mEncodeBufferInfo, 10000);
         while (outputIndex >= 0){
@@ -275,6 +294,7 @@ public class AudioCodec {
             }
             mAudioEncoder.releaseOutputBuffer(outputIndex,false);
             outputIndex = mAudioEncoder.dequeueOutputBuffer(mEncodeBufferInfo,10000);
+            Log.d(TAG,"编码器dequeueOutputBuffer...");
         }
     }
 
@@ -306,8 +326,8 @@ public class AudioCodec {
      */
     private void addADTStoPacket(byte[] packet, int packetLen) {
         int profile = 2; // AAC LC
-        int freqIdx = 4; // 44.1KHz
-        int chanCfg = 2; // CPE
+        int freqIdx = 4; // 44.1KHz  采样率samplerate
+        int chanCfg = 1; // CPE   声道配置
 
         // fill in ADTS data
         packet[0] = (byte) 0xFF;

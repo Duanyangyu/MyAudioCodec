@@ -34,8 +34,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        String srcPath = "/storage/emulated/0/sample.mp4";
-        String dstPath = "/storage/emulated/0/sample_AAC.aac";
+//        String srcPath = "/storage/emulated/0/sample_zxysgnz.mp3";
+//        String dstPath = "/storage/emulated/0/sample_zxysgnz.aac";
+        String srcPath = "/storage/emulated/0/sample2.mp4";
+        String dstPath = "/storage/emulated/0/sample10.aac";
 
         AudioCodec audioCodec = AudioCodec.getInstance(srcPath, dstPath, MediaFormat.MIMETYPE_AUDIO_AAC);
         audioCodec.setmOnAudioCodecListener(
